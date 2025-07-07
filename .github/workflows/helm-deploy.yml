@@ -45,6 +45,10 @@ jobs:
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
             --namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Remove conflicting cluster-scoped resources
+        run: |
+          kubectl delete clusterrole secretproviderrotation-role --ignore-not-found
+
       - name: Install Secrets Store CSI Driver with CRDs
         run: |
           helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
@@ -55,9 +59,9 @@ jobs:
             --set enableSecretRotation=true \
             --wait
 
-      - name: Wait for CRDs to register
+      - name: Wait for SecretProviderClass CRD
         run: |
-          echo "Waiting for SecretProviderClass CRD..."
+          echo "Waiting for CRD secretproviderclasses.secrets-store.csi.x-k8s.io..."
           until kubectl get crd secretproviderclasses.secrets-store.csi.x-k8s.io; do sleep 5; done
 
       - name: Helm upgrade backend
