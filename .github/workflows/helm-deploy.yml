@@ -37,6 +37,12 @@ jobs:
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
             --namespace devops-cicd --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Install Secrets Store CSI Driver
+        run: |
+          helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+          helm repo update
+          helm upgrade --install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver --namespace kube-system
+
       - name: Helm upgrade backend
         run: |
           helm upgrade --install backend ./helm/backend \
