@@ -52,7 +52,10 @@ jobs:
       - name: Install Secrets Store CSI Driver
         run: |
           kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/secrets-store-csi-driver.yaml
-          kubectl apply -f https://raw.githubusercontent.com/Azure/secrets-store-csi-driver-provider-azure/v1.4.0/deploy/provider-azure-installer.yaml
+      
+      - name: Install Azure Key Vault Provider
+        run: |
+          kubectl apply -f https://raw.githubusercontent.com/Azure/secrets-store-csi-driver-provider-azure/master/deployment/provider-azure-installer.yaml
 
       - name: Helm upgrade backend
         run: |
