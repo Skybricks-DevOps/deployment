@@ -51,8 +51,8 @@ jobs:
 
       - name: Add CSI Driver Helm repo and install
         run: |
-          helm repo add secrets-store-csi-driver https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/master/charts
-          helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver
+          helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
+          helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver --namespace kube-system
 
       - name: Helm upgrade backend
         run: |
