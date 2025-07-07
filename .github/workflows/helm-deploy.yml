@@ -60,7 +60,7 @@ jobs:
             --set enableSecretRotation=true \
             --wait
 
-      - name: Install Azure Key Vault Provider (reuse existing ServiceAccount)
+      - name: Install Azure Key Vault Provider
         run: |
           helm repo add csi-secrets-store-provider-azure https://azure.github.io/secrets-store-csi-driver-provider-azure/charts
           helm repo update
