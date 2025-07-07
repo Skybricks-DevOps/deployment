@@ -3,9 +3,10 @@ kind: Service
 metadata:
   name: {{ include "backend.fullname" . }}
 spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: 80
   selector:
     app: {{ include "backend.name" . }}
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP

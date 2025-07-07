@@ -1,17 +1,6 @@
-replicaCount: 1
-
 image:
-  repository: ghcr.io/your-org/backend
+  repository: ghcr.io/devops-iot3/backend
   tag: latest
-  pullPolicy: IfNotPresent
 
-service:
-  type: ClusterIP
-  port: 80
-
-env:
-  POSTGRES_HOST: ""
-  POSTGRES_PORT: "5432"
-  POSTGRES_DB: ""
-  POSTGRES_USER: ""
-  POSTGRES_PASSWORD: ""
+keyvaultName: "{{ .Values.keyvaultName | default (requiredEnv "KEYVAULT_NAME") }}"
+tenantId: "{{ .Values.tenantId | default (requiredEnv "TENANT_ID") }}"
