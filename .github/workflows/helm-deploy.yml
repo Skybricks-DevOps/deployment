@@ -19,6 +19,7 @@ jobs:
       ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
 
     steps:
+      # ──────────────── Git  / AKS context ────────────────
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -31,53 +32,54 @@ jobs:
         run: |
           az aks get-credentials \
             --resource-group rg-devops-cicd-${{ env.ENVIRONMENT }} \
-            --name aks-devops-cicd-${{ env.ENVIRONMENT }}
+            --name          aks-devops-cicd-${{ env.ENVIRONMENT }}
 
-      - name: Create namespace
+      # ──────────────── Namespace & secrets ────────────────
+      - name: Create namespace (idempotent)
         run: |
           kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Create image pull secret
+      - name: Create image‑pull secret (idempotent)
         run: |
           kubectl create secret docker-registry ghcr \
             --docker-server=ghcr.io \
             --docker-username=${{ secrets.TF_VAR_GITHUB_USERNAME }} \
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
-            --namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
+            --namespace $NAMESPACE \
+            --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Remove conflicting cluster-scoped resources
+      - name: Remove cluster‑scoped leftovers
         run: |
-          kubectl delete clusterrole secretproviderrotation-role --ignore-not-found
+          kubectl delete clusterrole        secretproviderrotation-role        --ignore-not-found
           kubectl delete clusterrolebinding secretproviderrotation-rolebinding --ignore-not-found
 
-      - name: Install Secrets Store CSI Driver with CRDs
+      # ──────────────── CLEANUP : ex‑release ────────────────
+      - name: Uninstall legacy Secrets Store CSI Driver release if present
         run: |
-          helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
-          helm repo update
-          helm upgrade --install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver \
-            --namespace kube-system \
-            --set syncSecret.enabled=true \
-            --set enableSecretRotation=true \
-            --wait
+          helm uninstall csi-secrets-store -n kube-system || true
 
-      - name: Install Azure Key Vault Provider
+      # ──────────────── INSTALL : CSI Driver + Azure provider (un seul chart) ────────────────
+      - name: Install Azure Key Vault provider (bundles CSI Driver)
         run: |
           helm repo add csi-secrets-store-provider-azure https://azure.github.io/secrets-store-csi-driver-provider-azure/charts
           helm repo update
-          helm upgrade --install azure-keyvault-provider csi-secrets-store-provider-azure/csi-secrets-store-provider-azure \
+          helm upgrade --install azure-keyvault-provider \
+            csi-secrets-store-provider-azure/csi-secrets-store-provider-azure \
             --namespace kube-system \
-            --set controller.serviceAccount.create=false \
-            --set controller.serviceAccount.name=secrets-store-csi-driver \
+            --set secrets-store-csi-driver.syncSecret.enabled=true \
+            --set secrets-store-csi-driver.enableSecretRotation=true \
             --wait
 
-          echo "Waiting for the Azure provider pods to be ready..."
-          kubectl -n kube-system wait --for=condition=ready pod -l app=csi-secrets-store-provider-azure --timeout=60s
-
-      - name: Wait for SecretProviderClass CRD to be ready
+      - name: Wait for provider pods to be ready
         run: |
-          echo "Waiting for CRD secretproviderclasses.secrets-store.csi.x-k8s.io..."
+          kubectl -n kube-system wait --for=condition=ready pod \
+            -l app=csi-secrets-store-provider-azure --timeout=120s
+
+      - name: Wait for SecretProviderClass CRD
+        run: |
           until kubectl get crd secretproviderclasses.secrets-store.csi.x-k8s.io; do sleep 5; done
 
+      # ──────────────── Vos charts applicatifs ────────────────
       - name: Helm upgrade backend
         run: |
           helm upgrade --install backend ./helm/backend \
@@ -88,17 +90,10 @@ jobs:
 
       - name: Debug CSI setup
         run: |
-          echo "Checking CSI driver pods..."
           kubectl get pods -n kube-system -l app=secrets-store-csi-driver
-
-          echo "Checking Azure provider pods..."
           kubectl get pods -n kube-system -l app=csi-secrets-store-provider-azure
-
-          echo "Checking SecretProviderClass..."
-          kubectl get secretproviderclass -n $NAMESPACE
-          kubectl describe secretproviderclass azure-keyvault-backend -n $NAMESPACE
+          kubectl get secretproviderclass -n $NAMESPACE || true
 
       - name: Helm upgrade frontend
         run: |
-          helm upgrade --install frontend ./helm/frontend \
-            --namespace $NAMESPACE
+          helm upgrade --install frontend ./helm/frontend --namespace $NAMESPACE
