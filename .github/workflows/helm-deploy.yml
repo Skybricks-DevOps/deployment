@@ -60,16 +60,16 @@ jobs:
             --set enableSecretRotation=true \
             --wait
 
-      - name: Install Azure Key Vault Provider
+      - name: Install Azure Key Vault Provider (reuse existing ServiceAccount)
         run: |
-          # Install the Azure Key Vault provider
           helm repo add csi-secrets-store-provider-azure https://azure.github.io/secrets-store-csi-driver-provider-azure/charts
           helm repo update
           helm upgrade --install azure-keyvault-provider csi-secrets-store-provider-azure/csi-secrets-store-provider-azure \
             --namespace kube-system \
+            --set controller.serviceAccount.create=false \
+            --set controller.serviceAccount.name=secrets-store-csi-driver \
             --wait
-          
-          # Wait for the provider to be ready
+
           echo "Waiting for the Azure provider pods to be ready..."
           kubectl -n kube-system wait --for=condition=ready pod -l app=csi-secrets-store-provider-azure --timeout=60s
 
@@ -86,21 +86,19 @@ jobs:
             --set clientId=${{ secrets.ARM_CLIENT_ID }} \
             --namespace $NAMESPACE
 
-      
       - name: Debug CSI setup
         run: |
           echo "Checking CSI driver pods..."
           kubectl get pods -n kube-system -l app=secrets-store-csi-driver
-          
+
           echo "Checking Azure provider pods..."
           kubectl get pods -n kube-system -l app=csi-secrets-store-provider-azure
-          
+
           echo "Checking SecretProviderClass..."
           kubectl get secretproviderclass -n $NAMESPACE
           kubectl describe secretproviderclass azure-keyvault-backend -n $NAMESPACE
-          
+
       - name: Helm upgrade frontend
         run: |
           helm upgrade --install frontend ./helm/frontend \
             --namespace $NAMESPACE
-
