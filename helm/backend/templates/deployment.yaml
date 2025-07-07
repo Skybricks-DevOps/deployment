@@ -22,21 +22,11 @@ spec:
           ports:
             - containerPort: 8000
           env:
-            - name: DB_HOST
+            - name: postgresql-admin-password
               valueFrom:
                 secretKeyRef:
                   name: db-secrets
-                  key: DB_HOST
-            - name: DB_USER
-              valueFrom:
-                secretKeyRef:
-                  name: db-secrets
-                  key: DB_USER
-            - name: DB_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db-secrets
-                  key: DB_PASSWORD
+                  key: postgresql-admin-password
           volumeMounts:
             - name: secrets-store-inline
               mountPath: "/mnt/secrets"
