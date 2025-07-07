@@ -48,6 +48,7 @@ jobs:
       - name: Remove conflicting cluster-scoped resources
         run: |
           kubectl delete clusterrole secretproviderrotation-role --ignore-not-found
+          kubectl delete clusterrolebinding secretproviderrotation-rolebinding --ignore-not-found
 
       - name: Install Secrets Store CSI Driver with CRDs
         run: |
@@ -59,7 +60,7 @@ jobs:
             --set enableSecretRotation=true \
             --wait
 
-      - name: Wait for SecretProviderClass CRD
+      - name: Wait for SecretProviderClass CRD to be ready
         run: |
           echo "Waiting for CRD secretproviderclasses.secrets-store.csi.x-k8s.io..."
           until kubectl get crd secretproviderclasses.secrets-store.csi.x-k8s.io; do sleep 5; done
