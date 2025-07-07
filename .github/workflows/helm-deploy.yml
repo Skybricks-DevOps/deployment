@@ -39,7 +39,7 @@ jobs:
 
       - name: Helm upgrade backend
         run: |
-          helm upgrade --install backend ./charts/backend \
+          helm upgrade --install backend ./helm/backend \
             --set imagePullSecrets[0].name=ghcr \
             --set keyvaultName=kv-devops-cicd-${{ github.event.inputs.environment }} \
             --set tenantId=$(az account show --query tenantId -o tsv) \
@@ -47,4 +47,5 @@ jobs:
 
       - name: Helm upgrade frontend
         run: |
-          helm upgrade --install frontend ./charts/frontend
+          helm upgrade --install frontend ./helm/frontend
+          
