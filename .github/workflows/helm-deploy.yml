@@ -7,13 +7,17 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'prod'
+        description: 'Deployment environment (e.g., prod)'
         required: true
         default: 'prod'
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      NAMESPACE: devops-cicd
+      ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -24,10 +28,14 @@ jobs:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       - name: Set AKS context
-        run: az aks get-credentials --resource-group rg-devops-cicd-${{ github.event.inputs.environment }} --name aks-devops-cicd-${{ github.event.inputs.environment }}
+        run: |
+          az aks get-credentials \
+            --resource-group rg-devops-cicd-${{ env.ENVIRONMENT }} \
+            --name aks-devops-cicd-${{ env.ENVIRONMENT }}
 
       - name: Create namespace
-        run: kubectl create namespace devops-cicd --dry-run=client -o yaml | kubectl apply -f -
+        run: |
+          kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Create image pull secret
         run: |
@@ -35,7 +43,7 @@ jobs:
             --docker-server=ghcr.io \
             --docker-username=${{ secrets.TF_VAR_GITHUB_USERNAME }} \
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
-            --namespace devops-cicd --dry-run=client -o yaml | kubectl apply -f -
+            --namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Delete existing CSIDriver if present
         run: |
@@ -43,22 +51,27 @@ jobs:
 
       - name: Install Secrets Store CSI Driver CRDs
         run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/crds/secrets-store.csi.x-k8s.io_secretproviderclasses.yaml
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/crds/secrets-store.csi.x-k8s.io_secretproviderclasspodstatuses.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/crds.yaml
 
       - name: Wait for SecretProviderClass CRD
         run: |
           kubectl wait --for=condition=Established --timeout=60s crd/secretproviderclasses.secrets-store.csi.x-k8s.io
 
+      - name: Setup Helm
+        uses: azure/setup-helm@v1
+
       - name: Helm upgrade backend
         run: |
           helm upgrade --install backend ./helm/backend \
             --set imagePullSecrets[0].name=ghcr \
-            --set keyvaultName=kv-devops-cicd-${{ github.event.inputs.environment }} \
+            --set keyvaultName=kv-devops-cicd-${{ env.ENVIRONMENT }} \
             --set tenantId=$(az account show --query tenantId -o tsv) \
-            --namespace devops-cicd --wait
+            --namespace $NAMESPACE --wait
 
       - name: Helm upgrade frontend
         run: |
-          helm upgrade --install frontend ./helm/frontend
-
+          helm upgrade --install frontend ./helm/frontend \
+            --set imagePullSecrets[0].name=ghcr \
+            --set keyvaultName=kv-devops-cicd-${{ env.ENVIRONMENT }} \
+            --set tenantId=$(az account show --query tenantId -o tsv) \
+            --namespace $NAMESPACE --wait
