@@ -44,10 +44,6 @@ jobs:
             --docker-username=${{ secrets.TF_VAR_GITHUB_USERNAME }} \
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
             --namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
-      
-      - name: Delete existing CSIDriver if present
-        run: |
-          kubectl delete csidriver secrets-store.csi.k8s.io --ignore-not-found
 
       - name: Add CSI Driver Helm repo and install
         run: |
