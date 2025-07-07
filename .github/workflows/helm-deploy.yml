@@ -41,11 +41,14 @@ jobs:
         run: |
           kubectl delete csidriver secrets-store.csi.k8s.io --ignore-not-found
 
-      - name: Install Secrets Store CSI Driver
+      - name: Install Secrets Store CSI Driver CRDs
         run: |
-          helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
-          helm repo update
-          helm upgrade --install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver --namespace kube-system
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/crds/secrets-store.csi.x-k8s.io_secretproviderclasses.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/crds/secrets-store.csi.x-k8s.io_secretproviderclasspodstatuses.yaml
+
+      - name: Wait for SecretProviderClass CRD
+        run: |
+          kubectl wait --for=condition=Established --timeout=60s crd/secretproviderclasses.secrets-store.csi.x-k8s.io
 
       - name: Helm upgrade backend
         run: |
