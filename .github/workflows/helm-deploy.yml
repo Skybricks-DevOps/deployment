@@ -49,13 +49,10 @@ jobs:
         run: |
           kubectl delete csidriver secrets-store.csi.k8s.io --ignore-not-found
 
-      - name: Install Secrets Store CSI Driver
+      - name: Add CSI Driver Helm repo and install
         run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/secrets-store-csi-driver.yaml
-      
-      - name: Install Azure Key Vault Provider
-        run: |
-          kubectl apply -f https://raw.githubusercontent.com/Azure/secrets-store-csi-driver-provider-azure/master/deployment/provider-azure-installer.yaml
+          helm repo add secrets-store-csi-driver https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/master/charts
+          helm install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver
 
       - name: Helm upgrade backend
         run: |
