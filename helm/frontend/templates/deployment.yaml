@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "frontend.fullname" . }}
+  name: {{ include "frontend.name" . }}
   labels:
     app: {{ include "frontend.name" . }}
 spec:
