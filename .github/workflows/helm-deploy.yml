@@ -45,12 +45,20 @@ jobs:
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
             --namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Add CSI Driver Helm repo and install
+      - name: Install Secrets Store CSI Driver with CRDs
         run: |
           helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
           helm repo update
           helm upgrade --install csi-secrets-store secrets-store-csi-driver/secrets-store-csi-driver \
-            --namespace kube-system
+            --namespace kube-system \
+            --set syncSecret.enabled=true \
+            --set enableSecretRotation=true \
+            --wait
+
+      - name: Wait for CRDs to register
+        run: |
+          echo "Waiting for SecretProviderClass CRD..."
+          until kubectl get crd secretproviderclasses.secrets-store.csi.x-k8s.io; do sleep 5; done
 
       - name: Helm upgrade backend
         run: |
