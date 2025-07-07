@@ -44,21 +44,15 @@ jobs:
             --docker-username=${{ secrets.TF_VAR_GITHUB_USERNAME }} \
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
             --namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
-
+      
       - name: Delete existing CSIDriver if present
         run: |
           kubectl delete csidriver secrets-store.csi.k8s.io --ignore-not-found
 
-      - name: Install Secrets Store CSI Driver CRDs
+      - name: Install Secrets Store CSI Driver
         run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/crds.yaml
-
-      - name: Wait for SecretProviderClass CRD
-        run: |
-          kubectl wait --for=condition=Established --timeout=60s crd/secretproviderclasses.secrets-store.csi.x-k8s.io
-
-      - name: Setup Helm
-        uses: azure/setup-helm@v1
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/secrets-store-csi-driver.yaml
+          kubectl apply -f https://raw.githubusercontent.com/Azure/secrets-store-csi-driver-provider-azure/main/deploy/provider-azure-installer.yaml
 
       - name: Helm upgrade backend
         run: |
