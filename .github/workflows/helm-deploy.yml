@@ -26,6 +26,9 @@ jobs:
       - name: Set AKS context
         run: az aks get-credentials --resource-group rg-devops-cicd-${{ github.event.inputs.environment }} --name aks-devops-cicd-${{ github.event.inputs.environment }}
 
+      - name: Create namespace
+        run: kubectl create namespace devops-cicd --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Create image pull secret
         run: |
           kubectl create secret docker-registry ghcr \
