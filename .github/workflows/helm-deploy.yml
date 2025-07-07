@@ -69,8 +69,8 @@ jobs:
         run: |
           helm upgrade --install backend ./helm/backend \
             --set keyvaultName=kv-devops-cicd-${{ env.ENVIRONMENT }} \
-            --set tenantId=$secret.ARM_TENANT_ID \
-            --set clientId=$secret.ARM_CLIENT_ID \
+            --set tenantId=${{ secrets.ARM_TENANT_ID }} \
+            --set clientId=${{ secrets.ARM_CLIENT_ID }} \
             --namespace $NAMESPACE
 
       - name: Helm upgrade frontend
