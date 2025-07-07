@@ -33,7 +33,7 @@ jobs:
         run: |
           kubectl create secret docker-registry ghcr \
             --docker-server=ghcr.io \
-            --docker-username=${{ github.actor }} \
+            --docker-username=${{ secrets.TF_VAR_GITHUB_USERNAME }} \
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
             --namespace devops-cicd --dry-run=client -o yaml | kubectl apply -f -
 
