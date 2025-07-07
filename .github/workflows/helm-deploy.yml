@@ -48,4 +48,4 @@ jobs:
       - name: Helm upgrade frontend
         run: |
           helm upgrade --install frontend ./helm/frontend
-          
+

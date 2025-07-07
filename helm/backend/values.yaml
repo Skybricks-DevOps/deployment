@@ -2,5 +2,5 @@ image:
   repository: ghcr.io/devops-iot3/backend
   tag: latest
 
-keyvaultName: "{{ .Values.keyvaultName | default (requiredEnv "KEYVAULT_NAME") }}"
-tenantId: "{{ .Values.tenantId | default (requiredEnv "TENANT_ID") }}"
+keyvaultName: ""
+tenantId: ""
