@@ -37,6 +37,10 @@ jobs:
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
             --namespace devops-cicd --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Delete existing CSIDriver if present
+        run: |
+          kubectl delete csidriver secrets-store.csi.k8s.io --ignore-not-found
+
       - name: Install Secrets Store CSI Driver
         run: |
           helm repo add secrets-store-csi-driver https://kubernetes-sigs.github.io/secrets-store-csi-driver/charts
