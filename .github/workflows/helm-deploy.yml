@@ -73,6 +73,11 @@ jobs:
             --set clientId=${{ secrets.ARM_CLIENT_ID }} \
             --namespace $NAMESPACE
 
+      - name: Verify SecretProviderClass is available
+        run: |
+          echo "Waiting for SecretProviderClass to be available..."
+          kubectl wait --for=condition=established --timeout=60s secretproviderclass/azure-keyvault-backend -n $NAMESPACE
+
       - name: Helm upgrade frontend
         run: |
           helm upgrade --install frontend ./helm/frontend \
