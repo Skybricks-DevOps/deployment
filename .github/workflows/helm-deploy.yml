@@ -52,8 +52,8 @@ jobs:
 
       - name: Install CSI Driver CRDs
         run: |
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/crds/secrets-store.csi.x-k8s.io_secretproviderclasses.yaml
-          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/deploy/crds/secrets-store.csi.x-k8s.io_secretproviderclasspodstatuses.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/charts/secrets-store-csi-driver/crds/secrets-store.csi.x-k8s.io_secretproviderclasses.yaml
+          kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/secrets-store-csi-driver/v1.4.0/charts/secrets-store-csi-driver/crds/secrets-store.csi.x-k8s.io_secretproviderclasspodstatuses.yaml
 
       - name: Install CSI Driver via Helm
         run: |
