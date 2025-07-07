@@ -4,3 +4,4 @@ image:
 
 keyvaultName: ""
 tenantId: ""
+clientId: ""
