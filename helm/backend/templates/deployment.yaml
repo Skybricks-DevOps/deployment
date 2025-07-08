@@ -38,15 +38,5 @@ spec:
                 secretKeyRef:
                   name: backend-secrets
                   key: DB_PASSWORD
-          volumeMounts:
-            - name: secrets-store
-              mountPath: "/mnt/secrets-store"
-              readOnly: true
-      volumes:
-        - name: secrets-store
-          csi:
-            driver: secrets-store.csi.k8s.io
-            readOnly: true
-            volumeAttributes:
-              secretProviderClass: "azure-kvname"
+
       
