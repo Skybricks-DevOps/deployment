@@ -16,6 +16,12 @@ jobs:
     env:
       NAMESPACE: devops-cicd
       ENVIRONMENT: ${{ github.event.inputs.environment || 'staging' }}
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      TF_VAR_github_username: ${{ secrets.TF_VAR_GITHUB_USERNAME }}
+      TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
 
     steps:
     # ────────── Git / AKS context ──────────
@@ -94,8 +100,8 @@ jobs:
       run: |
         helm upgrade --install backend ./helm/backend \
           --set keyvaultName=kv-devops-cicd-${{ env.ENVIRONMENT }} \
-          --set tenantId=${{ secrets.ARM_TENANT_ID }} \
-          --set clientId=${{ secrets.ARM_CLIENT_ID }} \
+          --set tenantId=${{ env.ARM_TENANT_ID }} \
+          --set clientId=${{ env.ARM_CLIENT_ID }} \
           --namespace $NAMESPACE
 
     - name: Helm upgrade frontend
