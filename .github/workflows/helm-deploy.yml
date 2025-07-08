@@ -61,7 +61,6 @@ jobs:
           ./helm/install_nginx_controller.sh
 
 
-
       - name: Deploy Backend
         run: |
           helm upgrade --install backend ./helm/backend \
@@ -78,16 +77,3 @@ jobs:
         run: |
           helm upgrade --install ingress ./helm/ingress \
             --namespace ${{ env.NAMESPACE }}
-
-      - name: Verify deployments
-        run: |
-          echo "Waiting for deployments to be ready..."
-          kubectl wait --for=condition=available --timeout=300s deployment/backend -n ${{ env.NAMESPACE }}
-          kubectl wait --for=condition=available --timeout=300s deployment/frontend -n ${{ env.NAMESPACE }}
-          
-          echo "Getting service URLs..."
-          BACKEND_IP=$(kubectl get svc -n ${{ env.NAMESPACE }} backend -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-          FRONTEND_IP=$(kubectl get svc -n ${{ env.NAMESPACE }} frontend -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-          
-          echo "Backend service available at: http://$BACKEND_IP"
-          echo "Frontend service available at: http://$FRONTEND_IP"
