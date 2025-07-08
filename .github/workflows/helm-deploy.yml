@@ -67,12 +67,17 @@ jobs:
 
       - name: Configure Key Vault Integration
         run: |
-          KEY_VAULT_NAME=$(az keyvault list -g rg-devops-cicd-${{ github.event.inputs.environment }} --query "[0].name" -o tsv)
+          KEY_VAULT_NAME=$(az keyvault list -g rg-devops-cicd-${{ env.ENVIRONMENT }} --query "[0].name" -o tsv)
           TENANT_ID=$(az account show --query tenantId -o tsv)
+          
+          # Get the AKS managed identity client ID
+          AKS_IDENTITY=$(az aks show -g rg-devops-cicd-${{ env.ENVIRONMENT }} -n aks-devops-cicd-${{ env.ENVIRONMENT }} \
+            --query "identityProfile.kubeletidentity.clientId" -o tsv)
           
           # Update Secret Provider Class with actual values
           sed -i "s/\${KEY_VAULT_NAME}/$KEY_VAULT_NAME/g" ./helm/backend/templates/secret-provider.yaml
           sed -i "s/\${TENANT_ID}/$TENANT_ID/g" ./helm/backend/templates/secret-provider.yaml
+          sed -i "s/userAssignedIdentityID: \"\"/userAssignedIdentityID: \"$AKS_IDENTITY\"/g" ./helm/backend/templates/secret-provider.yaml
 
       - name: Deploy Backend
         run: |
