@@ -1,8 +1,5 @@
+# Configuration de l'image Docker
 image:
   repository: ghcr.io/devops-iot3/backend
   tag: latest
 
-keyvaultName: ""
-tenantId: ""
-# clientId is not needed for System Assigned Managed Identity
-# clientId: ""

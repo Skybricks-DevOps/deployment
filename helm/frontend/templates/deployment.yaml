@@ -18,7 +18,7 @@ spec:
         - name: ghcr
       containers:
         - name: frontend
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 80
           env:

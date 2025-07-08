@@ -1,40 +1,52 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Chart.Name }}
+  name: {{ .Release.Name }}-backend
   labels:
-    app: {{ .Chart.Name }}
+    app: backend
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app: {{ .Chart.Name }}
+      app: backend
   template:
     metadata:
       labels:
-        app: {{ .Chart.Name }}
+        app: backend
     spec:
       imagePullSecrets:
         - name: ghcr
       containers:
-        - name: backend
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           ports:
             - containerPort: 8000
           env:
-            - name: postgresql-admin-password
+            - name: DB_HOST
+              value: {{ .Values.postgresql.host }}
+            - name: DB_PORT
+              value: "{{ .Values.postgresql.port }}"
+            - name: DB_NAME
+              value: {{ .Values.postgresql.database }}
+            - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: db-secrets
-                  key: postgresql-admin-password
+                  name: backend-secrets
+                  key: DB_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: DB_PASSWORD
           volumeMounts:
-            - name: secrets-store-inline
-              mountPath: "/mnt/secrets"
+            - name: secrets-store
+              mountPath: "/mnt/secrets-store"
               readOnly: true
       volumes:
-        - name: secrets-store-inline
+        - name: secrets-store
           csi:
             driver: secrets-store.csi.k8s.io
             readOnly: true
             volumeAttributes:
-              secretProviderClass: azure-keyvault-backend
+              secretProviderClass: "azure-kvname"
+      
