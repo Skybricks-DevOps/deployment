@@ -79,7 +79,8 @@ jobs:
 
       - name: Deploy Frontend
         run: |
-          helm upgrade --install frontend ./helm/frontend 
+          helm upgrade --install frontend ./helm/frontend \
+            --namespace ${{ env.NAMESPACE }}
 
       - name: Deploy Ingress
         run: |
