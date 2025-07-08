@@ -49,7 +49,15 @@ jobs:
             --docker-password=${{ secrets.TF_VAR_GITHUB_TOKEN }} \
             --namespace $NAMESPACE \
             --dry-run=client -o yaml | kubectl apply -f -
+          
+          # Create backend secrets for database access
+          kubectl create secret generic backend-secrets \
+            --from-literal=DB_USER=${{ secrets.DB_USER }} \
+            --from-literal=DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --namespace $NAMESPACE \
+            --dry-run=client -o yaml | kubectl apply -f -
 
+      # ────────── Helm setup and deployments ──────────
       - name: Setup Helm
         uses: azure/setup-helm@v3
         with:
