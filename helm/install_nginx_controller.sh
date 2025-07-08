@@ -18,5 +18,3 @@ echo "Waiting for the nginx-controller to be ready"
 kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s
 echo "nginx-controller is ready"
 
-SCRIPT_DIR=$(dirname "$(readlink -f "$0")")
-helm upgrade --install nginx-ingress "$SCRIPT_DIR/ingress"
