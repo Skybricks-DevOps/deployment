@@ -57,13 +57,13 @@ jobs:
 
       - name: Install NGINX Ingress Controller
         run: |
-          chmod +x ./deployment/helm/install_nginx_controller.sh
-          ./deployment/helm/install_nginx_controller.sh
+          chmod +x ./helm/install_nginx_controller.sh
+          ./helm/install_nginx_controller.sh
 
       - name: Install Key Vault Provider
         run: |
-          chmod +x ./deployment/helm/install_keyvault_provider.sh
-          ./deployment/helm/install_keyvault_provider.sh
+          chmod +x ./helm/install_keyvault_provider.sh
+          ./helm/install_keyvault_provider.sh
 
       - name: Configure Key Vault Integration
         run: |
@@ -71,12 +71,12 @@ jobs:
           TENANT_ID=$(az account show --query tenantId -o tsv)
           
           # Update Secret Provider Class with actual values
-          sed -i "s/\${KEY_VAULT_NAME}/$KEY_VAULT_NAME/g" ./deployment/helm/backend/templates/secret-provider.yaml
-          sed -i "s/\${TENANT_ID}/$TENANT_ID/g" ./deployment/helm/backend/templates/secret-provider.yaml
+          sed -i "s/\${KEY_VAULT_NAME}/$KEY_VAULT_NAME/g" ./helm/backend/templates/secret-provider.yaml
+          sed -i "s/\${TENANT_ID}/$TENANT_ID/g" ./helm/backend/templates/secret-provider.yaml
 
       - name: Deploy Backend
         run: |
-          helm upgrade --install backend ./deployment/helm/backend \
+          helm upgrade --install backend ./helm/backend \
             --namespace ${{ env.NAMESPACE }} \
             --set postgresql.host=${{ secrets.DB_HOST }} \
             --set postgresql.port=${{ secrets.DB_PORT }} \
@@ -84,11 +84,11 @@ jobs:
 
       - name: Deploy Frontend
         run: |
-          helm upgrade --install frontend ./deployment/helm/frontend 
+          helm upgrade --install frontend ./helm/frontend 
 
       - name: Deploy Ingress
         run: |
-          helm upgrade --install ingress ./deployment/helm/ingress \
+          helm upgrade --install ingress ./helm/ingress \
             --namespace ${{ env.NAMESPACE }}
 
       - name: Verify deployments
