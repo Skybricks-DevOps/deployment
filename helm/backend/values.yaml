@@ -4,4 +4,5 @@ image:
 
 keyvaultName: ""
 tenantId: ""
-clientId: ""
+# clientId is not needed for System Assigned Managed Identity
+# clientId: ""

@@ -24,27 +24,14 @@ jobs:
       TF_VAR_github_token: ${{ secrets.TF_VAR_GITHUB_TOKEN }}
 
     steps:
+    # ────────── Git / AKS context ──────────
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Azure CLI login
+    - name: Azure CLI login
       uses: azure/login@v1
       with:
         creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-    - name: Assign Managed Identity to VMSS
-      run: |
-        # Variables
-        RESOURCE_GROUP="rg-devops-cicd-${{ env.ENVIRONMENT }}"
-        AKS_CLUSTER_NAME="aks-devops-cicd-${{ env.ENVIRONMENT }}"
-        CLIENT_ID="${{ env.ARM_CLIENT_ID }}"
-
-        # Récupérer le nom du nodepool (VMSS)
-        NODEPOOL_NAME=$(az aks nodepool list --resource-group $RESOURCE_GROUP --cluster-name $AKS_CLUSTER_NAME --query "[0].name" -o tsv)
-        VMSS_NAME="${AKS_CLUSTER_NAME}-vmss-${NODEPOOL_NAME}"
-
-        echo "Assigning Managed Identity $CLIENT_ID to VMSS $VMSS_NAME in $RESOURCE_GROUP"
-        az vmss identity assign --resource-group $RESOURCE_GROUP --name $VMSS_NAME --identities $CLIENT_ID
 
     - name: Set AKS context
       run: |
@@ -52,6 +39,7 @@ jobs:
           --resource-group rg-devops-cicd-${{ env.ENVIRONMENT }} \
           --name          aks-devops-cicd-${{ env.ENVIRONMENT }}
 
+    # ────────── Namespace & image‑pull secret ──────────
     - name: Prepare namespace
       run: |
         kubectl create namespace $NAMESPACE --dry-run=client -o yaml | kubectl apply -f -
@@ -62,6 +50,7 @@ jobs:
           --namespace $NAMESPACE \
           --dry-run=client -o yaml | kubectl apply -f -
 
+    # ────────── Vérifier l’add‑on AKS ──────────
     - name: Detect AKS KeyVault add‑on
       id: addon
       run: |
@@ -71,15 +60,18 @@ jobs:
           --query "addonProfiles.azureKeyvaultSecretsProvider.enabled" -o tsv 2>/dev/null || echo "false")
         echo "addonEnabled=$flag" >> "$GITHUB_OUTPUT"
 
+    # ────────── Nettoyage des anciens charts ──────────
     - name: Uninstall legacy Helm releases
       if: steps.addon.outputs.addonEnabled == 'false'
       run: |
         helm uninstall azure-keyvault-provider -n kube-system || true
         helm uninstall csi-secrets-store   -n kube-system || true
+        # Attendre la suppression effective des DaemonSets/Pods
         kubectl delete daemonset -n kube-system -l app=csi-secrets-store-provider-azure --ignore-not-found
         kubectl delete daemonset -n kube-system -l app=secrets-store-csi-driver       --ignore-not-found
         kubectl wait --for=delete pod -n kube-system -l app=csi-secrets-store-provider-azure --timeout=120s || true
 
+    # ────────── Installation du chart seulement si nécessaire ──────────
     - name: Install Azure Key Vault provider (Helm)
       if: steps.addon.outputs.addonEnabled == 'false'
       run: |
@@ -87,27 +79,28 @@ jobs:
           https://azure.github.io/secrets-store-csi-driver-provider-azure/charts
         helm repo update
         helm upgrade --install azure-keyvault-provider \
-          csi-secrets-store-provider-azure/csi-secrets-store-csi-provider-azure \
+          csi-secrets-store-provider-azure/csi-secrets-store-provider-azure \
           --namespace kube-system \
           --set secrets-store-csi-driver.syncSecret.enabled=true \
           --set secrets-store-csi-driver.enableSecretRotation=true \
-          --set metricsAddr="8899" \
+          --set metricsAddr="8899" \ 
           --wait
 
+    # ────────── Attente des pods (sécurisée) ──────────
     - name: Wait for provider pods (if chart was installed)
       if: steps.addon.outputs.addonEnabled == 'false'
       run: |
-        echo "Waiting up to 5 min for provider pods…"
+        echo "Waiting up to 5 min for provider pods…"
         kubectl -n kube-system wait --for=condition=ready pod \
           -l app=csi-secrets-store-provider-azure \
           --timeout=300s
 
+    # ────────── Vos charts applicatifs ──────────
     - name: Helm upgrade backend
       run: |
         helm upgrade --install backend ./helm/backend \
           --set keyvaultName=kv-devops-cicd-${{ env.ENVIRONMENT }} \
           --set tenantId=${{ env.ARM_TENANT_ID }} \
-          --set clientId=${{ env.ARM_CLIENT_ID }} \
           --namespace $NAMESPACE
 
     - name: Helm upgrade frontend
