@@ -1,4 +1,1 @@
-image:
-  repository: ghcr.io/devops-iot3/frontend
-  tag: latest
-apiUrl: http://backend
+# Fichier vide ou valeurs spécifiques au routage si besoin.

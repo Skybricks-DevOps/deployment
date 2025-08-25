@@ -1,5 +1,5 @@
 # Configuration de l'image Docker
 image:
-  repository: ghcr.io/devops-iot3/backend
+  repository: ghcr.io/skybricks-devops/backend
   tag: latest
 

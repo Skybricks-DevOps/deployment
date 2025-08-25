@@ -1,4 +1,4 @@
 image:
-  repository: ghcr.io/devops-iot3/frontend
+  repository: ghcr.io/skybricks-devops/frontend
   tag: latest
 apiUrl: http://backend
