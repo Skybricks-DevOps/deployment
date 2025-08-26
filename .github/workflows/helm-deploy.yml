@@ -8,7 +8,7 @@ on:
       environment:
         description: "Deployment environment (e.g., prod)"
         required: true
-        default: "dev" # ← change "prod" to "dev" if you want to deploy to dev by default
+        default: "staging" # ← change "prod" to "dev" if you want to deploy to dev by default
 
 jobs:
   deploy:
