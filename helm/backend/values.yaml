@@ -3,10 +3,4 @@ image:
   repository: ghcr.io/skybricks-devops/backend
   tag: latest
 
-# Configuration de la base de données PostgreSQL
-postgresql:
-  host: psql-devops-cicd-staging.private.postgres.database.azure.com
-  port: 5432
-  database: employeesdb
-
 
