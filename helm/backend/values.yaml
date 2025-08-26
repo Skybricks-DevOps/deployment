@@ -5,7 +5,7 @@ image:
 
 # Configuration de la base de données PostgreSQL
 postgresql:
-  host: psql-devops-cicd-staging.postgres.database.azure.com
+  host: psql-devops-cicd-staging.private.postgres.database.azure.com
   port: 5432
   database: employeesdb
 
