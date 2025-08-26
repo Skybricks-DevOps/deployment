@@ -1,4 +1,5 @@
 image:
   repository: ghcr.io/skybricks-devops/frontend
   tag: latest
+
 apiUrl: http://backend
