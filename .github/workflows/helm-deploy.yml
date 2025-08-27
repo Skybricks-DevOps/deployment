@@ -37,8 +37,9 @@ jobs:
         run: |
           az aks get-credentials \
             --resource-group rg-devops-cicd-${{ env.ENVIRONMENT }} \
-            --name          aks-devops-cicd-${{ env.ENVIRONMENT }}
-
+            --name          aks-devops-cicd-${{ env.ENVIRONMENT }} \
+            --overwrite-existing
+            
       # ────────── Namespace & image‑pull secret ──────────
       - name: Prepare namespace
         run: |
@@ -52,8 +53,12 @@ jobs:
           
           # Create backend secrets for database access
           kubectl create secret generic backend-secrets \
-            --from-literal=DB_USER=${{ secrets.DB_USER }} \
-            --from-literal=DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --from-literal=DB_HOST='${{ secrets.DB_HOST }}' \
+            --from-literal=DB_PORT='${{ secrets.DB_PORT }}' \
+            --from-literal=DB_NAME='${{ secrets.DB_NAME }}' \
+            --from-literal=DB_USER='${{ secrets.DB_USER }}' \
+            --from-literal=DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            --from-literal=DB_SSLMODE='require' \
             --namespace $NAMESPACE \
             --dry-run=client -o yaml | kubectl apply -f -
 
@@ -77,7 +82,8 @@ jobs:
             --set postgresql.port=${{ secrets.DB_PORT }} \
             --set postgresql.database=${{ secrets.DB_NAME }} \
             --set postgresql.user=${{ secrets.DB_USER }} \
-            --set postgresql.password=${{ secrets.DB_PASSWORD }}
+            --set postgresql.password=${{ secrets.DB_PASSWORD }} \
+            --set postgresql.sslmode=require
 
       - name: Deploy Frontend
         run: |
