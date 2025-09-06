@@ -95,3 +95,5 @@ jobs:
           helm upgrade --install ingress ./helm/ingress \
             --namespace ${{ env.NAMESPACE }}
 #workflow1
+
+# Note: All deployments (AKS, secrets, Helm charts) will target the environment specified in workflow_dispatch (dev, staging, prod).
