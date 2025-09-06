@@ -35,6 +35,13 @@ jobs:
           name: tf-outputs
           path: ./tf-artifacts
 
+      - name: Check tf_outputs.json presence
+        run: |
+          if [ ! -f ./tf-artifacts/tf_outputs.json ]; then
+            echo "❌ tf_outputs.json not found. Run the Terraform workflow first."
+            exit 1
+          fi
+
       # Charge les outputs Terraform dans des variables d'environnement
       - name: Export Terraform Outputs as ENV
         run: |
