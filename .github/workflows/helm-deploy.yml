@@ -28,6 +28,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Télécharge les outputs Terraform du workflow précédent
+      - name: Download Terraform Outputs
+        uses: actions/download-artifact@v4
+        with:
+          name: tf-outputs
+          path: ./tf-artifacts
+
+      # Charge les outputs Terraform dans des variables d'environnement
+      - name: Export Terraform Outputs as ENV
+        run: |
+          jq -r 'to_entries|map("export " + .key + "=" + (.value.value|tostring))|.[]' ./tf-artifacts/tf_outputs.json >> $GITHUB_ENV
+
       - name: Azure CLI login
         uses: azure/login@v1
         with:
@@ -53,11 +65,11 @@ jobs:
           
           # Create backend secrets for database access
           kubectl create secret generic backend-secrets \
-            --from-literal=DB_HOST='${{ secrets.DB_HOST }}' \
-            --from-literal=DB_PORT='${{ secrets.DB_PORT }}' \
-            --from-literal=DB_NAME='${{ secrets.DB_NAME }}' \
-            --from-literal=DB_USER='${{ secrets.DB_USER }}' \
-            --from-literal=DB_PASSWORD='${{ secrets.DB_PASSWORD }}' \
+            --from-literal=DB_HOST="${{ env.postgresql_server_fqdn }}" \
+            --from-literal=DB_PORT='5432' \
+            --from-literal=DB_NAME="${{ env.postgresql_database_name }}" \
+            --from-literal=DB_USER="${{ env.postgresql_admin_username }}" \
+            --from-literal=DB_PASSWORD="${{ env.postgresql_admin_password }}" \
             --from-literal=DB_SSLMODE='require' \
             --namespace $NAMESPACE \
             --dry-run=client -o yaml | kubectl apply -f -
