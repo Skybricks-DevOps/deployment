@@ -37,15 +37,14 @@ jobs:
 
       - name: Check tf_outputs.json presence
         run: |
-          if [ ! -f ./tf-artifacts/tf_outputs.json ]; then
-            echo "❌ tf_outputs.json not found. Run the Terraform workflow first."
+          if [ ! -f ./tf_outputs.json ]; then
+            echo "❌ tf_outputs.json not found. Add it to the repo before running this workflow."
             exit 1
           fi
 
-      # Charge les outputs Terraform dans des variables d'environnement
       - name: Export Terraform Outputs as ENV
         run: |
-          jq -r 'to_entries|map("export " + .key + "=" + (.value.value|tostring))|.[]' ./tf-artifacts/tf_outputs.json >> $GITHUB_ENV
+          jq -r 'to_entries|map("export " + .key + "=" + (.value.value|tostring))|.[]' ./tf_outputs.json >> $GITHUB_ENV
 
       - name: Azure CLI login
         uses: azure/login@v1
