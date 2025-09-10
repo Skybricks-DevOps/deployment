@@ -23,18 +23,35 @@ spec:
             - containerPort: 8000
           env:
             - name: DB_HOST
-              value: {{ .Values.postgresql.host }}
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: DB_HOST
             - name: DB_PORT
-              value: "{{ .Values.postgresql.port }}"
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: DB_PORT
             - name: DB_NAME
-              value: {{ .Values.postgresql.database }}
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: DB_NAME
             - name: DB_USER
-              value: {{ .Values.postgresql.user }}
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: DB_USER
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: backend-secrets
                   key: DB_PASSWORD
-    
+            - name: DB_SSLMODE
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: DB_SSLMODE
+
 
 
