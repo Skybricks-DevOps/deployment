@@ -54,8 +54,8 @@ jobs:
       - name: Set AKS context
         run: |
           az aks get-credentials \
-            --resource-group rg-devops-cicd-${{ env.ENVIRONMENT }} \
-            --name          aks-devops-cicd-${{ env.ENVIRONMENT }} \
+            --resource-group rg-devopsskybrix-${{ env.ENVIRONMENT }} \
+            --name          aks-devopsskybrix-${{ env.ENVIRONMENT }} \
             --overwrite-existing
             
       # ────────── Namespace & image‑pull secret ──────────
