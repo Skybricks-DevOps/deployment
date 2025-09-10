@@ -95,12 +95,12 @@ jobs:
       - name: Deploy Backend
         run: |
           helm upgrade --install backend ./helm/backend \
-            --namespace ${{ env.NAMESPACE }} \
-            --set postgresql.host=${{ secrets.DB_HOST }} \
-            --set postgresql.port=${{ secrets.DB_PORT }} \
-            --set postgresql.database=${{ secrets.DB_NAME }} \
-            --set postgresql.user=${{ secrets.DB_USER }} \
-            --set-string postgresql.password=${{ secrets.DB_PASSWORD }} \
+            --namespace '${{ env.NAMESPACE }}' \
+            --set postgresql.host='${{ secrets.DB_HOST }}' \
+            --set postgresql.port='${{ secrets.DB_PORT }}' \
+            --set postgresql.database='${{ secrets.DB_NAME }}' \
+            --set postgresql.user='${{ secrets.DB_USER }}' \
+            --set-string postgresql.password='${{ secrets.DB_PASSWORD }}' \
             --set postgresql.sslmode=require
 
       - name: Deploy Frontend
