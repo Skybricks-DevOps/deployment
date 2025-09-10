@@ -100,7 +100,7 @@ jobs:
             --set postgresql.port=${{ secrets.DB_PORT }} \
             --set postgresql.database=${{ secrets.DB_NAME }} \
             --set postgresql.user=${{ secrets.DB_USER }} \
-            --set postgresql.password=${{ secrets.DB_PASSWORD }} \
+            --set-string postgresql.password='${{ secrets.DB_PASSWORD }}' \
             --set postgresql.sslmode=require
 
       - name: Deploy Frontend
